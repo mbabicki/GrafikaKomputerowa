@@ -1,1 +1,264 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+<title>CPSC 424, Lab 2, Exercise 1</title>
+<style>
+    body {
+        background-color: #DDDDDD;
+    }
+    canvas {
+        background-color: white;
+        display: block;
+    }
+    #canvasholder {
+        border: 2px solid black;
+        float: left;
+    }
+</style>
+<script>
+
+    "use strict";
+
+    var canvas;
+    var graphics;
+    var pixelSize;
+
+    var smileyX = 520;
+    var smileyY = 690;
+
+    var scaleFactor = 0.6; 
+    
+    function draw() {
+    graphics.clearRect(0, 0, 600, 600);
+
+
+    // duze kolo
+    graphics.beginPath();
+    graphics.arc(320, 320, 190, 0, 2 * Math.PI);
+    graphics.fillStyle = 'yellow';
+    graphics.fill();
+    graphics.closePath();
+
+    
+
+    // male kolo
+    graphics.beginPath();
+    graphics.arc(200, 300, 100, 0, 2 * Math.PI);
+    graphics.fillStyle = 'white';
+    graphics.fill();
+    graphics.closePath();
+
+    
+
+    
+    graphics.globalCompositeOperation = 'destination-out';
+    
+    graphics.rotate(-0.1);
+    graphics.beginPath();
+    graphics.arc(200, 300, 150, 0, 2 * Math.PI);
+    graphics.fill();
+    graphics.closePath();
+    
+    graphics.rotate(0);
+    
+    graphics.globalCompositeOperation = 'source-over';
+
+   
+
+    // oczy
+    graphics.beginPath();
+    graphics.fillStyle = "#FFFFFF";
+    graphics.fillCircle(370, 370, 20); 
+    graphics.fillCircle(440, 370, 20); 
+    graphics.fill();
+
+    graphics.fillStyle = "#000000";
+    graphics.fillCircle(368, 370, 10); 
+    graphics.fillCircle(438, 370, 10); 
+    graphics.fill();
+
+    graphics.fillStyle = "#FFFFFF";
+    graphics.fillCircle(361, 365, 5); 
+    graphics.fillCircle(431, 365, 5); 
+    graphics.fill();
+    graphics.closePath();
+
+    
+// twarz za pomoca krzywych beziera
+graphics.beginPath();
+graphics.fillStyle = "rgb(0, 0, 0)";
+graphics.moveTo(smileyX * scaleFactor, smileyY * scaleFactor);
+graphics.bezierCurveTo(
+    (smileyX + 60) * scaleFactor, (smileyY + 110) * scaleFactor,
+    (smileyX + 160) * scaleFactor, (smileyY + 110) * scaleFactor,
+    (smileyX + 220) * scaleFactor, smileyY * scaleFactor
+);
+graphics.bezierCurveTo(
+    (smileyX + 160) * scaleFactor, (smileyY + 50) * scaleFactor,
+    (smileyX + 60) * scaleFactor, (smileyY + 50) * scaleFactor,
+    smileyX * scaleFactor, smileyY * scaleFactor
+);
+graphics.fill();
+graphics.closePath();
+
+graphics.beginPath();
+graphics.arc((smileyX - 15) * scaleFactor, (smileyY - 15) * scaleFactor, 27 * scaleFactor, -0.1 * Math.PI, 0.55 * Math.PI);
+graphics.stroke();
+
+graphics.beginPath();
+graphics.arc((smileyX + 245) * scaleFactor, (smileyY - 10) * scaleFactor, 27 * scaleFactor, 0.5 * Math.PI, 1.1 * Math.PI);
+graphics.stroke();
+
+graphics.beginPath();
+graphics.fillStyle = "rgb(255,255,255)";
+graphics.rect((smileyX + 90) * scaleFactor, (smileyY + 40) * scaleFactor, 25 * scaleFactor, 25 * scaleFactor);
+graphics.rect((smileyX + 110) * scaleFactor, (smileyY + 40) * scaleFactor, 25 * scaleFactor, 25 * scaleFactor);
+graphics.fill();
+graphics.lineWidth = 2;
+graphics.strokeLine((smileyX + 112.5) * scaleFactor, (smileyY + 40) * scaleFactor, (smileyX + 112.5) * scaleFactor, (smileyY + 65) * scaleFactor);
+graphics.closePath();
+    
+}
+
+
+
+    function applyWindowToViewportTransformation(left, right, bottom, top, preserveAspect) {
+        var displayAspect, windowAspect;
+        var excess;
+        var pixelwidth, pixelheight;
+        if (preserveAspect) {
+            displayAspect = Math.abs(canvas.height / canvas.width);
+            windowAspect = Math.abs(( top-bottom ) / ( right-left ));
+            if (displayAspect > windowAspect) {
+                excess = (top-bottom) * (displayAspect/windowAspect - 1);
+                top = top + excess/2;
+                bottom = bottom - excess/2;
+            } else if (displayAspect < windowAspect) {
+                excess = (right-left) * (windowAspect/displayAspect - 1);
+                right = right + excess/2;
+                left = left - excess/2;
+            }
+        }
+        graphics.scale( canvas.width / (right-left), canvas.height / (bottom-top) );
+        graphics.translate( -left, -top );
+        pixelwidth =  Math.abs(( right - left ) / canvas.width);
+        pixelheight = Math.abs(( bottom - top ) / canvas.height);
+        pixelSize = Math.max(pixelwidth, pixelheight);
+    }
+
+    function addGraphicsContextExtras(graphics) {
+        graphics.strokeLine = function(x1, y1, x2, y2) {
+           this.beginPath();
+           this.moveTo(x1, y1);
+           this.lineTo(x2, y2);
+           this.stroke();
+        }
+        graphics.fillCircle = function(x, y, r) {
+           this.beginPath();
+           this.arc(x, y, r, 0, 2 * Math.PI, false);
+           this.fill();
+        }
+        graphics.strokeCircle = function(x, y, radius) {
+           this.beginPath();
+           this.arc(x, y, radius, 0, 2 * Math.PI, false);
+           this.stroke();
+        }
+        graphics.fillPoly = function() { 
+            if (arguments.length < 6)
+               return;
+            this.beginPath();
+            this.moveTo(arguments[0], arguments[1]);
+            for (var i = 2; i + 1 < arguments.length; i = i + 2) { 
+               this.lineTo(arguments[i], arguments[i + 1]);
+            }
+            this.closePath();
+            this.fill();
+        }
+        graphics.strokePoly = function() { 
+            if (arguments.length < 4)
+               return;
+            this.beginPath();
+            this.moveTo(arguments[0], arguments[1]);
+            for (var i = 2; i + 1 < arguments.length; i = i + 2) { 
+               this.lineTo(arguments[i], arguments[i + 1]);
+            }
+            this.closePath();
+            this.stroke();
+        }
+        graphics.fillOval = function(x, y, horizontalRadius, verticalRadius) {
+           this.save();
+           this.translate(x, y);
+           this.scale(horizontalRadius, verticalRadius);
+           this.beginPath();
+           this.arc(0, 0, 1, 0, 2 * Math.PI, false);
+           this.restore();
+           this.fill();
+        }
+        graphics.strokeOval = function(x, y, horizontalRadius, verticalRadius) {
+           this.save();
+           this.translate(x, y);
+           this.scale(horizontalRadius, verticalRadius);
+           this.beginPath();
+           this.arc(0, 0, 1, 0, 2 * Math.PI, false);
+           this.restore();
+           this.stroke();
+        }
+        graphics.getRGB = function(x, y) {
+            var color = this.getImageData(x, y, 1, 1);
+            return color.data;
+        }
+    }
+
+    function init() {
+        try {
+            canvas = document.getElementById("canvas");
+            graphics = canvas.getContext("2d");
+        } catch(e) {
+            document.getElementById("canvasholder").innerHTML =
+               "Canvas graphics is not supported.<br>" +
+               "An error occurred while initializing graphics.";
+        }
+        addGraphicsContextExtras(graphics);
+        draw();
+    }
+
+</script>
+<link href="data:text/css,%3Ais(%5Bid*%3D'google_ads_iframe'%5D%2C%5Bid*%3D'taboola-'%5D%2C.taboolaHeight%2C.taboola-placeholder%2C%23credential_picker_container%2C%23credentials-picker-container%2C%23credential_picker_iframe%2C%5Bid*%3D'google-one-tap-iframe'%5D%2C%23google-one-tap-popup-container%2C.google-one-tap-modal-div%2C%23amp_floatingAdDiv%2C%23ez-content-blocker-container)%20%7Bdisplay%3Anone!important%3Bmin-height%3A0!important%3Bheight%3A0!important%3B%7D" rel="stylesheet" type="text/css"></head>
+<body onload="init()">
+
+<h2>CS 424, Lab 2, Exercise 1</h2>
+
+<noscript>
+    <p>JavaScript is required to use this page.</p>
+</noscript>
+
+<div id="canvasholder">
+<canvas id="canvas" width="600" height="600">
+    Canvas not supported.
+</canvas>
+</div>
+
+<script>
+mendeleyWebImporter = {
+  downloadPdfs(e,t) { return this._call('downloadPdfs', [e,t]); },
+  open() { return this._call('open', []); },
+  setLoginToken(e) { return this._call('setLoginToken', [e]); },
+  _call(methodName, methodArgs) {
+    const id = Math.random();
+    window.postMessage({ id, token: '0.7410837702584282', methodName, methodArgs }, 'https://e-uczelnia.ath.bielsko.pl');
+    return new Promise(resolve => {
+      const listener = window.addEventListener('message', event => {
+        const data = event.data;
+        if (typeof data !== 'object' || !('result' in data) || data.id !== id) return;
+        window.removeEventListener('message', listener);
+        resolve(data.result);
+      });
+    });
+  }
+};
+</script>
+</body>
+</html>
 
